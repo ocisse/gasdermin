@@ -1,0 +1,91 @@
+##
+include: "../utils/build_hmm.smk"
+
+rule scan_sp63:
+	input:
+		g1="../../data/external/ncbi/SP63/GCF_000239375.1_PunNye1.0_genomic.fna",
+		g2="../../data/external/ncbi/SP63/GCF_001266775.1_Austrofundulus_limnaeus-1.0_genomic.fna",
+		g3="../../data/external/ncbi/SP63/GCF_001515605.1_SAMN03320099.WGS_v1.1_genomic.fna",
+		g4="../../data/external/ncbi/SP63/GCF_001515625.1_SAMN03320098_v1.1_genomic.fna",
+		g5="../../data/external/ncbi/SP63/GCF_001515645.1_SAMN03320097.WGS_v1.1_genomic.fna",
+		g6="../../data/external/ncbi/SP63/GCF_002872115.1_PKINGS_0.1_genomic.fna",
+		g7="../../data/external/ncbi/SP63/GCF_002910315.2_ASM291031v2_genomic.fna",
+		g8="../../data/external/ncbi/SP63/GCF_009829125.1_fPerMag1.pri_genomic.fna",
+		g9="../../data/external/ncbi/SP63/GCF_016077235.1_ASM1607723v1_genomic.fna",
+		g10="../../data/external/ncbi/SP63/GCF_900408965.1_fSimDia1.1_genomic.fna",
+		g11="../../data/external/ncbi/SP63/GCF_900634415.1_fCotGob3.1_genomic.fna",
+		g12="../../data/external/ncbi/SP63/GCF_902500255.1_fThaAma1.1_genomic.fna",
+		g13="../../data/external/ncbi/SP63/GCF_902827175.1_fGymAcu1.1_genomic.fna",
+ 		gasAseed=rules.cns.output.a,
+ 		gasBseed=rules.cns.output.b,
+ 		gasCseed=rules.cns.output.c,
+		gasDseed=rules.cns.output.d,
+		gasEseed=rules.cns.output.e,
+		gasPseed=rules.cns.output.p,
+	output:
+		db="../../data/external/ncbi/SP63/data/all_concat.fas",
+ 		sp63a="../../data/processed/searches/sp63_exonerate_gasA.tab",
+ 		sp63b="../../data/processed/searches/sp63_exonerate_gasB.tab",
+ 		sp63c="../../data/processed/searches/sp63_exonerate_gasC.tab",
+		sp63d="../../data/processed/searches/sp63_exonerate_gasD.tab",
+		sp63e="../../data/processed/searches/sp63_exonerate_gasE.tab",
+		sp63p="../../data/processed/searches/sp63_exonerate_gasP.tab",	
+	params:
+		"--showtargetgff Y  --showvulgar F --minintron 20 --showalignment F --showcigar no --gff3 Y --verbose 0"
+	run:
+		shell("cat {input.g1} {input.g2} {input.g3} {input.g4} {input.g5} {input.g6} {input.g7} {input.g8} {input.g9}"
+		" {input.g10} {input.g11} {input.g12} {input.g13} > {output.db}")
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasAseed} -t {output.db} {params} > {output.sp63a}")
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasBseed} -t {output.db} {params} > {output.sp63b}")
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasCseed} -t {output.db} {params} > {output.sp63c}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasDseed} -t {output.db} {params} > {output.sp63d}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasEseed} -t {output.db} {params} > {output.sp63e}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasPseed} -t {output.db} {params} > {output.sp63p}")
+
+# too many - manually split 
+#
+# create file with one match per file
+# perl ../scripts/split__multigff.pl --exonerate ../../data/processed/searches/sp63_exonerate_gasA.tab # generate this../../data/processed/searches/sp63_exonerate_gasA.tab.split1.tmp.tab
+# perl ../scripts/split__multigff.pl --exonerate ../../data/processed/searches/sp63_exonerate_gasE.tab 
+# perl ../scripts/split__multigff.pl --exonerate ../../data/processed/searches/sp63_exonerate_gasP.tab
+#
+# ## convert in proper gff
+# ls ../../data/processed/searches/sp63_exonerate_gasA.tab.split*.tmp.tab | cut -f 5,6,7 -d '.' | while read f; do perl ../scripts/fix_exonerate_gff.pl --gff ../..$f.tmp.tab --tag sp63_gasA$f > ../..$f.gff; done
+# ls ../../data/processed/searches/sp63_exonerate_gasE.tab.split*.tmp.tab | cut -f 5,6,7 -d '.' | while read f; do perl ../scripts/fix_exonerate_gff.pl --gff ../..$f.tmp.tab --tag sp63_gasE$f > ../..$f.gff; done
+# ls ../../data/processed/searches/sp63_exonerate_gasP.tab.split*.tmp.tab | cut -f 5,6,7 -d '.' | while read f; do perl ../scripts/fix_exonerate_gff.pl --gff ../..$f.tmp.tab --tag sp63_gasP$f > ../..$f.gff; done
+#
+# ## get the transcript
+# ls ../../data/processed/searches/sp63_exonerate_gasA.tab.split*.gff | \
+# 	cut -f 5,6,7 -d '.' | while read f; \
+# 	do gffread -w ../..$f.transcripts.fa \
+# 	-g ../../data/external/ncbi/SP63/data/all_concat.fas \
+# 	../..$f.gff;done
+#
+# ls ../../data/processed/searches/sp63_exonerate_gasE.tab.split*.gff | cut -f 5,6,7 -d '.' | while read f; do gffread -w ../..$f.transcripts.fa -g ../../data/external/ncbi/SP63/data/all_concat.fas ../..$f.gff;done
+# ls ../../data/processed/searches/sp63_exonerate_gasP.tab.split*.gff | cut -f 5,6,7 -d '.' | while read f; do gffread -w ../..$f.transcripts.fa -g ../../data/external/ncbi/SP63/data/all_concat.fas ../..$f.gff;done
+#
+# ## get the protein
+# ls ../../data/processed/searches/sp63_exonerate_gasA.tab.split*.gff | cut -f 5,6,7 -d '.' | while read f; \
+# 	do funannotate util gff2prot --gff3 ../..$f.gff --fasta ../../data/external/ncbi/SP63/data/all_concat.fas > ../..$f.proteins.fa;done # failed
+# 
+rule fix_gff:
+        input:
+		r1="../../data/processed/searches/sp63_exonerate_gasA_split1.tab",
+		r2="../../data/processed/searches/sp63_exonerate_gasA_split2.tab",
+		r3="../../data/processed/searches/sp63_exonerate_gasA_split3.tab",
+		r4="../../data/processed/searches/sp63_exonerate_gasA_split4.tab",
+		
+			
+        params: sp58p="sp58_pvk",
+        output:
+		r1="../../data/processed/searches/sp63_exonerate_gasA_split1.gff",
+                r2="../../data/processed/searches/sp63_exonerate_gasA_split2.gff",
+                r3="../../data/processed/searches/sp63_exonerate_gasA_split3.gff",
+                r4="../../data/processed/searches/sp63_exonerate_gasA_split4.gff",
+
+        run:
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.r1} --tag {params.sp58p} > {output.r1}")
+                shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.r2} --tag {params.sp58p} > {output.r2}")
+                shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.r3} --tag {params.sp58p} > {output.r3}")
+                shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.r4} --tag {params.sp58p} > {output.r4}")
+

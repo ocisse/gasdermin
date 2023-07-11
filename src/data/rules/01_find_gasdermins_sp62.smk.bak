@@ -1,0 +1,174 @@
+##
+include: "../utils/build_hmm.smk"
+
+rule scan_sp62:
+	input:
+		sp62="../../data/external/ncbi/SP62/data/all_concat.fas",
+ 		gasAseed=rules.cns.output.a,
+ 		gasBseed=rules.cns.output.b,
+ 		gasCseed=rules.cns.output.c,
+		gasDseed=rules.cns.output.d,
+		gasEseed=rules.cns.output.e,
+		gasPseed=rules.cns.output.p,
+	output:
+ 		sp62a="../../data/processed/searches/sp62_exonerate_gasA.tab",
+ 		sp62b="../../data/processed/searches/sp62_exonerate_gasB.tab",
+ 		sp62c="../../data/processed/searches/sp62_exonerate_gasC.tab",
+		sp62d="../../data/processed/searches/sp62_exonerate_gasD.tab",
+		sp62e="../../data/processed/searches/sp62_exonerate_gasE.tab",
+		sp62p="../../data/processed/searches/sp62_exonerate_gasP.tab",	
+	params:
+		"--showtargetgff Y  --showvulgar F --minintron 20 --showalignment F --showcigar no --gff3 Y --verbose 0"
+	run:
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasAseed} -t {input.sp62} {params} > {output.sp62a}")
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasBseed} -t {input.sp62} {params} > {output.sp62b}")
+ 		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasCseed} -t {input.sp62} {params} > {output.sp62c}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasDseed} -t {input.sp62} {params} > {output.sp62d}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasEseed} -t {input.sp62} {params} > {output.sp62e}")
+		shell("../tools/exonerate-gff3/src/program/exonerate --model protein2genome --percent 5 -q {input.gasPseed} -t {input.sp62} {params} > {output.sp62p}")
+##
+
+rule fix_gff:
+	input:
+		a1="../../data/processed/searches/sp62_exonerate_gasA_split1.tab", 
+		a2="../../data/processed/searches/sp62_exonerate_gasA_split2.tab",
+		e1="../../data/processed/searches/sp62_exonerate_gasE_split1.tab",
+		e2="../../data/processed/searches/sp62_exonerate_gasE_split2.tab",
+		e3="../../data/processed/searches/sp62_exonerate_gasE_split3.tab",
+		e4="../../data/processed/searches/sp62_exonerate_gasE_split4.tab",
+		e5="../../data/processed/searches/sp62_exonerate_gasE_split5.tab",
+		p1="../../data/processed/searches/sp62_exonerate_gasP_split1.tab",
+		p2="../../data/processed/searches/sp62_exonerate_gasP_split2.tab",
+		p3="../../data/processed/searches/sp62_exonerate_gasP_split3.tab",
+		p4="../../data/processed/searches/sp62_exonerate_gasP_split4.tab",
+		p5="../../data/processed/searches/sp62_exonerate_gasP_split5.tab",
+		p6="../../data/processed/searches/sp62_exonerate_gasP_split6.tab",
+		p7="../../data/processed/searches/sp62_exonerate_gasP_split7.tab",
+		p8="../../data/processed/searches/sp62_exonerate_gasP_split8.tab",
+		p9="../../data/processed/searches/sp62_exonerate_gasP_split9.tab",
+
+	params: 
+		a1="sp62_gasAs1", a2="sp62_gasAs2",
+		e1="sp62_gasEs1", e2="sp62_gasEs2", e3="sp62_gasEs3", e4="sp62_gasEs4", e5="sp62_gasEs5",
+		p1="sp62_gasPs1", p2="sp62_gasPs2", p3="sp62_gasPs3", p4="sp62_gasPs4", p5="sp62_gasPs5",
+		p6="sp62_gasPs6", p7="sp62_gasPs7", p8="sp62_gasPs8", p9="sp62_gasPs9",
+	output:
+		a1="../../data/processed/searches/sp62_exonerate_gasA_split1.gff",
+                a2="../../data/processed/searches/sp62_exonerate_gasA_split2.gff",
+		e1="../../data/processed/searches/sp62_exonerate_gasE_split1.gff",
+                e2="../../data/processed/searches/sp62_exonerate_gasE_split2.gff",
+                e3="../../data/processed/searches/sp62_exonerate_gasE_split3.gff",
+                e4="../../data/processed/searches/sp62_exonerate_gasE_split4.gff",
+                e5="../../data/processed/searches/sp62_exonerate_gasE_split5.gff",
+                p1="../../data/processed/searches/sp62_exonerate_gasP_split1.gff",
+                p2="../../data/processed/searches/sp62_exonerate_gasP_split2.gff",
+                p3="../../data/processed/searches/sp62_exonerate_gasP_split3.gff",
+                p4="../../data/processed/searches/sp62_exonerate_gasP_split4.gff",
+                p5="../../data/processed/searches/sp62_exonerate_gasP_split5.gff",
+                p6="../../data/processed/searches/sp62_exonerate_gasP_split6.gff",
+                p7="../../data/processed/searches/sp62_exonerate_gasP_split7.gff",
+                p8="../../data/processed/searches/sp62_exonerate_gasP_split8.gff",
+                p9="../../data/processed/searches/sp62_exonerate_gasP_split9.gff",
+	run:
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.a1} --tag {params.a1} > {output.a1}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.a2} --tag {params.a2} > {output.a2}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.e1} --tag {params.e1} > {output.e1}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.e2} --tag {params.e2} > {output.e2}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.e3} --tag {params.e3} > {output.e3}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.e4} --tag {params.e4} > {output.e4}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.e5} --tag {params.e5} > {output.e5}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p1} --tag {params.p1} > {output.p1}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p2} --tag {params.p2} > {output.p2}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p3} --tag {params.p3} > {output.p3}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p4} --tag {params.p4} > {output.p4}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p5} --tag {params.p5} > {output.p5}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p6} --tag {params.p6} > {output.p6}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p7} --tag {params.p7} > {output.p7}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p8} --tag {params.p8} > {output.p8}")
+		shell("perl ../scripts/fix_exonerate_gff.pl --gff {input.p9} --tag {params.p9} > {output.p9}")
+
+rule gff3Tofasta:
+	input:
+		sp62g=rules.scan_sp62.input.sp62,
+		a1=rules.fix_gff.output.a1,
+                a2=rules.fix_gff.output.a2,
+		e1=rules.fix_gff.output.e1, 
+		e2=rules.fix_gff.output.e2,
+		e3=rules.fix_gff.output.e3,
+		e4=rules.fix_gff.output.e4,
+		e5=rules.fix_gff.output.e5,
+		p1=rules.fix_gff.output.p1,
+		p2=rules.fix_gff.output.p2,
+		p3=rules.fix_gff.output.p3,
+		p4=rules.fix_gff.output.p4,
+		p5=rules.fix_gff.output.p5,
+		p6=rules.fix_gff.output.p6,
+		p7=rules.fix_gff.output.p7,
+		p8=rules.fix_gff.output.p8,
+		p9=rules.fix_gff.output.p9,
+	output:
+		a1t="../../data/processed/searches/sp62_exonerate_gasA_split1.transcripts.fa",
+                a2t="../../data/processed/searches/sp62_exonerate_gasA_split2.transcripts.fa",
+		e1t="../../data/processed/searches/sp62_exonerate_gasE_split1.transcripts.fa",
+                e2t="../../data/processed/searches/sp62_exonerate_gasE_split2.transcripts.fa",
+                e3t="../../data/processed/searches/sp62_exonerate_gasE_split3.transcripts.fa",
+                e4t="../../data/processed/searches/sp62_exonerate_gasE_split4.transcripts.fa",
+                e5t="../../data/processed/searches/sp62_exonerate_gasE_split5.transcripts.fa",
+		p1t="../../data/processed/searches/sp62_exonerate_gasP_split1.transcripts.fa",
+                p2t="../../data/processed/searches/sp62_exonerate_gasP_split2.transcripts.fa",
+                p3t="../../data/processed/searches/sp62_exonerate_gasP_split3.transcripts.fa",
+                p4t="../../data/processed/searches/sp62_exonerate_gasP_split4.transcripts.fa",
+                p5t="../../data/processed/searches/sp62_exonerate_gasP_split5.transcripts.fa",
+                p6t="../../data/processed/searches/sp62_exonerate_gasP_split6.transcripts.fa",
+                p7t="../../data/processed/searches/sp62_exonerate_gasP_split7.transcripts.fa",
+                p8t="../../data/processed/searches/sp62_exonerate_gasP_split8.transcripts.fa",
+		p9t="../../data/processed/searches/sp62_exonerate_gasP_split9.transcripts.fa",
+		a1p="../../data/processed/searches/sp62_exonerate_gasA_split1.proteins.fa",
+                a2p="../../data/processed/searches/sp62_exonerate_gasA_split2.proteins.fa",
+		e1p="../../data/processed/searches/sp62_exonerate_gasE_split1.proteins.fa",
+                e2p="../../data/processed/searches/sp62_exonerate_gasE_split2.proteins.fa",
+                e3p="../../data/processed/searches/sp62_exonerate_gasE_split3.proteins.fa",
+                e4p="../../data/processed/searches/sp62_exonerate_gasE_split4.proteins.fa",
+                e5p="../../data/processed/searches/sp62_exonerate_gasE_split5.proteins.fa",
+		p1p="../../data/processed/searches/sp62_exonerate_gasP_split1.proteins.fa",
+                p2p="../../data/processed/searches/sp62_exonerate_gasP_split2.proteins.fa",
+                p3p="../../data/processed/searches/sp62_exonerate_gasP_split3.proteins.fa",
+                p4p="../../data/processed/searches/sp62_exonerate_gasP_split4.proteins.fa",
+                p5p="../../data/processed/searches/sp62_exonerate_gasP_split5.proteins.fa",
+                p6p="../../data/processed/searches/sp62_exonerate_gasP_split6.proteins.fa",
+                p7p="../../data/processed/searches/sp62_exonerate_gasP_split7.proteins.fa",
+                p8p="../../data/processed/searches/sp62_exonerate_gasP_split8.proteins.fa",
+		p9p="../../data/processed/searches/sp62_exonerate_gasP_split9.proteins.fa",
+	run:
+		shell("gffread -w {output.a1t} -g {input.sp62g} {input.a1}")
+		shell("gffread -w {output.a2t} -g {input.sp62g} {input.a2}")
+		shell("gffread -w {output.e1t} -g {input.sp62g} {input.e1}")
+		shell("gffread -w {output.e2t} -g {input.sp62g} {input.e2}")
+		shell("gffread -w {output.e3t} -g {input.sp62g} {input.e3}")
+		shell("gffread -w {output.e4t} -g {input.sp62g} {input.e4}")
+		shell("gffread -w {output.e5t} -g {input.sp62g} {input.e5}")
+		shell("gffread -w {output.p1t} -g {input.sp62g} {input.p1}")
+		shell("gffread -w {output.p2t} -g {input.sp62g} {input.p2}")
+		shell("gffread -w {output.p3t} -g {input.sp62g} {input.p3}")
+		shell("gffread -w {output.p4t} -g {input.sp62g} {input.p4}")
+		shell("gffread -w {output.p5t} -g {input.sp62g} {input.p5}")
+		shell("gffread -w {output.p6t} -g {input.sp62g} {input.p6}")
+		shell("gffread -w {output.p7t} -g {input.sp62g} {input.p7}")
+		shell("gffread -w {output.p8t} -g {input.sp62g} {input.p8}")
+		shell("gffread -w {output.p9t} -g {input.sp62g} {input.p9}")
+		shell("funannotate util gff2prot --gff3 {input.a1} --fasta {input.sp62g} > {output.a1p}")
+		shell("funannotate util gff2prot --gff3 {input.a2} --fasta {input.sp62g} > {output.a2p}")
+		shell("funannotate util gff2prot --gff3 {input.e1} --fasta {input.sp62g} > {output.e1p}")
+		shell("funannotate util gff2prot --gff3 {input.e2} --fasta {input.sp62g} > {output.e2p}")
+		shell("funannotate util gff2prot --gff3 {input.e3} --fasta {input.sp62g} > {output.e3p}")
+		shell("funannotate util gff2prot --gff3 {input.e4} --fasta {input.sp62g} > {output.e4p}")
+		shell("funannotate util gff2prot --gff3 {input.e5} --fasta {input.sp62g} > {output.e5p}")
+		shell("funannotate util gff2prot --gff3 {input.p1} --fasta {input.sp62g} > {output.p1p}")
+		shell("funannotate util gff2prot --gff3 {input.p2} --fasta {input.sp62g} > {output.p2p}")
+		shell("funannotate util gff2prot --gff3 {input.p3} --fasta {input.sp62g} > {output.p3p}")
+		shell("funannotate util gff2prot --gff3 {input.p4} --fasta {input.sp62g} > {output.p4p}")
+		shell("funannotate util gff2prot --gff3 {input.p5} --fasta {input.sp62g} > {output.p5p}")
+		shell("funannotate util gff2prot --gff3 {input.p6} --fasta {input.sp62g} > {output.p6p}")
+		shell("funannotate util gff2prot --gff3 {input.p7} --fasta {input.sp62g} > {output.p7p}")
+		shell("funannotate util gff2prot --gff3 {input.p8} --fasta {input.sp62g} > {output.p8p}")
+		shell("funannotate util gff2prot --gff3 {input.p9} --fasta {input.sp62g} > {output.p9p}")
